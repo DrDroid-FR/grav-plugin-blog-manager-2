@@ -1,0 +1,13 @@
+PLUGIN_BLOG_MANAGER:
+  PLUGIN_STATUS: 'Stato del plugin'
+  BLOG_PATH: 'Percorso del blog'
+  BLOG_PATH_HELP: 'Percorso della cartella del blog (es. /blog)'
+  PLACEHOLDER_IMAGE: 'Immagine segnaposto'
+  PLACEHOLDER_IMAGE_HELP: 'Immagine personalizzata per gli articoli senza immagine'
+  IMAGE_CACHE: 'Cache immagini'
+  IMAGE_CACHE_HELP: 'Attiva la cache immagini con un parametro di versione'
+  MENU_TITLE: 'Gestione blog'
+  PERMISSIONS_POSTS_READ: 'Leggere gli articoli del blog'
+  PERMISSIONS_POSTS_WRITE: 'Scrivere gli articoli del blog'
+  PERMISSIONS_POSTS_DELETE: 'Eliminare gli articoli del blog'
+  PERMISSIONS_POSTS_EXPORT: 'Esportare gli articoli del blog'

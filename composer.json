@@ -1,0 +1,16 @@
+{
+  "name": "drdroid/grav-plugin-blog-manager",
+  "description": "Blog Manager plugin for Grav CMS",
+  "license": "MIT",
+  "require-dev": {
+    "phpunit/phpunit": "^10.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Grav\\Plugin\\BlogManager\\": "classes/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
+}

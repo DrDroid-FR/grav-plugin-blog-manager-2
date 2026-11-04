@@ -1,0 +1,6 @@
+/vendor/
+.phpunit.cache/
+.phpunit.result.cache
+1791505757773-blog-manager-fixes.md
+Thumbs.db
+.DS_Store

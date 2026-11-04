@@ -1,0 +1,13 @@
+PLUGIN_BLOG_MANAGER:
+  PLUGIN_STATUS: 'Estado del complemento'
+  BLOG_PATH: 'Ruta del blog'
+  BLOG_PATH_HELP: 'Ruta de la carpeta del blog (p. ej. /blog)'
+  PLACEHOLDER_IMAGE: 'Imagen de sustitución'
+  PLACEHOLDER_IMAGE_HELP: 'Imagen personalizada para los artículos sin imagen'
+  IMAGE_CACHE: 'Caché de imágenes'
+  IMAGE_CACHE_HELP: 'Activar la caché de imágenes con un parámetro de versión'
+  MENU_TITLE: 'Gestor del blog'
+  PERMISSIONS_POSTS_READ: 'Leer artículos del blog'
+  PERMISSIONS_POSTS_WRITE: 'Escribir artículos del blog'
+  PERMISSIONS_POSTS_DELETE: 'Eliminar artículos del blog'
+  PERMISSIONS_POSTS_EXPORT: 'Exportar artículos del blog'

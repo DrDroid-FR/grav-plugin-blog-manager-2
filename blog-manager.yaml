@@ -1,0 +1,3 @@
+enabled: true
+blog_path: '/blog'
+image_cache: true
