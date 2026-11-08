@@ -19,7 +19,7 @@ A modern **Admin2 (Grav 2.x) plugin** that provides a dashboard for managing blo
 - 🔄 **Inline Status Toggle** — Click Published/Visible badges to toggle without page reload
 - 🔍 **Filter Panel** — Search by text, filter by Published, Visible, Category, Tag, Language, and Date Range
 - 📅 **Date Range Filter** — Begin date / End date inputs (native HTML5 date pickers)
-- 🖼️ **Thumbnail Images** — Raster images are served from the plugin API. Posts without image use the Grav logo or logo declared in settings..
+- 🖼️ **Thumbnail Images** — Card images use the post's own page file. A post with no raster image uses the Grav logo.
 - 💾 **Persistent View** — Remembers selected view mode across sessions
 - ✅ **Multi-Select** — Click to toggle, Shift+click for range selection
 - ✅ **Bulk Actions** — Bulk Publish, Visible, Duplicate, Delete, Export, and Clear, with confirmation modals for delete and duplicate
@@ -62,8 +62,6 @@ After installation, go to **Plugins → Blog Manager** to configure:
 |--------|-------------|---------|
 | Plugin Enabled | Enable or disable the plugin | Yes |
 | Blog Path | Route path to the blog page | `/blog` |
-| Custom placeholder image | Reserved plugin setting. The dashboard currently uses the Grav logo when a post has no raster image. | Grav logo |
-| Image cache | Reserved plugin setting for a version query on images | Yes |
 
 The post list resolves **Blog Path** on each request, including numbered folders such as `03.blog`.
 
@@ -71,7 +69,7 @@ The post list resolves **Blog Path** on each request, including numbered folders
 
 | Permission | Allows |
 |------------|--------|
-| `blog-manager.posts.read` | List posts and load thumbnails |
+| `blog-manager.posts.read` | List posts and scan the blog folder |
 | `blog-manager.posts.write` | Create, duplicate, toggle status, and import |
 | `blog-manager.posts.delete` | Delete posts |
 | `blog-manager.posts.export` | Download ZIP exports |

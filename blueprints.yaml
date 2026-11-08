@@ -41,25 +41,3 @@ form:
       size: large
       help: PLUGIN_BLOG_MANAGER.BLOG_PATH_HELP
       placeholder: '/blog'
-
-    placeholder_image:
-      type: file
-      label: PLUGIN_BLOG_MANAGER.PLACEHOLDER_IMAGE
-      help: PLUGIN_BLOG_MANAGER.PLACEHOLDER_IMAGE_HELP
-      destination: 'self@:/images'
-      multiple: false
-      accept:
-        - image/*
-        - '.svg'
-
-    image_cache:
-      type: toggle
-      label: PLUGIN_BLOG_MANAGER.IMAGE_CACHE
-      highlight: 1
-      default: 1
-      options:
-        1: PLUGIN_ADMIN.YES
-        0: PLUGIN_ADMIN.NO
-      validate:
-        type: bool
-      help: PLUGIN_BLOG_MANAGER.IMAGE_CACHE_HELP
