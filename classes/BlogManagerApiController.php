@@ -649,9 +649,11 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
 
         $body = $this->getRequestBody($request);
         $title = $body['title'] ?? 'New Post';
-        $slug = $this->slugify($title);
-        $timestamp = date('YmdHis');
-        $folderName = $timestamp . '-' . $slug;
+        $slug = $this->slugify(is_scalar($title) ? (string)$title : 'New Post');
+        $folderName = $this->uniquePostFolder($blogDir, $slug);
+        if ($folderName === null) {
+            return ApiResponse::create(['success' => false, 'message' => 'Could not create post folder'], 500);
+        }
         $postDir = $blogDir . '/' . $folderName;
 
         if (!mkdir($postDir, 0755, true)) {
@@ -789,9 +791,9 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             return ApiResponse::create(['success' => false, 'message' => 'Post not found'], 404);
         }
 
-        $timestamp = date('YmdHis');
-        $newFolder = $folder . '-copy-' . $timestamp;
-        if ($this->isUnsafeSegment($newFolder)) {
+        $slug = $this->stripPostFolderPrefix(basename($postDir));
+        $newFolder = $this->uniquePostFolder($blogReal, $slug . '-copy');
+        if ($newFolder === null) {
             return ApiResponse::create(['success' => false, 'message' => 'Invalid folder parameter'], 400);
         }
         $newPostDir = dirname($postDir) . DIRECTORY_SEPARATOR . $newFolder;
@@ -1281,6 +1283,41 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         }
 
         return $nested;
+    }
+
+    protected function uniquePostFolder(string $blogDir, string $slug): ?string
+    {
+        $slug = trim($slug, '-');
+        if ($slug === '' || $this->isUnsafeSegment($slug)) {
+            return null;
+        }
+
+        $candidate = $slug;
+        for ($n = 2; $n <= 1000; $n++) {
+            if (!$this->postFolderTaken($blogDir, $candidate)) {
+                return $candidate;
+            }
+            $candidate = $slug . '-' . $n;
+        }
+
+        return null;
+    }
+
+    protected function postFolderTaken(string $blogDir, string $name): bool
+    {
+        if ($name === '' || $this->isUnsafeSegment($name) || is_dir($blogDir . DIRECTORY_SEPARATOR . $name)) {
+            return true;
+        }
+
+        $dirs = glob($blogDir . '/*', GLOB_ONLYDIR) ?: [];
+        foreach ($dirs as $dir) {
+            [, $slug] = \Grav\Common\Page\PageOrdering::parse(basename($dir));
+            if ($slug === $name) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function slugify(string $text): string

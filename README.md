@@ -106,7 +106,7 @@ Navigate to **Blog Manager** in the Admin Next sidebar (book icon). Posts are lo
 
 - Click a **post title** or the **Edit** button to open it in Grav's native page editor
 - Click **Published** or **Visible** badges to toggle status inline
-- Use **Duplicate** to copy a post (creates `-copy` suffix, unpublishes)
+- Use **Duplicate** to copy a post. The new folder is `slug-copy`, or `slug-copy-2` when that name is taken. The copy is unpublished. A new post uses the slug itself, then `slug-2`.
 - Use **Delete** to remove it permanently (with confirmation modal)
 
 #### Bulk Actions

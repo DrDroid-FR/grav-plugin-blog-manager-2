@@ -104,6 +104,20 @@ final class BlogManagerApiControllerTest extends TestCase
         Grav::instance()['config']->set('plugins.blog-manager.blog_path', '/blog');
     }
 
+    public function testFolderNamesUseTheSlugAndThenANumber(): void
+    {
+        $root = $this->makeTree();
+        $blog = $root . DIRECTORY_SEPARATOR . 'blog';
+        mkdir($blog . DIRECTORY_SEPARATOR . '01.hello', 0755, true);
+        mkdir($blog . DIRECTORY_SEPARATOR . 'hello-2', 0755, true);
+
+        $this->assertSame('hello-3', $this->call('uniquePostFolder', [$blog, 'hello']));
+        $this->assertSame('other', $this->call('uniquePostFolder', [$blog, 'other']));
+        $this->assertSame('hello-copy', $this->call('uniquePostFolder', [$blog, 'hello-copy']));
+        mkdir($blog . DIRECTORY_SEPARATOR . 'hello-copy');
+        $this->assertSame('hello-copy-2', $this->call('uniquePostFolder', [$blog, 'hello-copy']));
+    }
+
     public function testCopyAndDeleteStayInsideTheAllowedRoot(): void
     {
         $root = $this->makeTree();
