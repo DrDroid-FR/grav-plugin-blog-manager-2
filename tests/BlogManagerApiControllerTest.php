@@ -118,6 +118,26 @@ final class BlogManagerApiControllerTest extends TestCase
         $this->assertSame('hello-copy-2', $this->call('uniquePostFolder', [$blog, 'hello-copy']));
     }
 
+    public function testFrontmatterLineEditKeepsTheRestOfTheHeader(): void
+    {
+        $source = "---\ntitle: Hello\ndate: '13:34 07/23/2017'\npublished: true\n# keep me\nvisible: true\n---\n\nBody stays\n";
+        $toggled = $this->call('setFrontmatterLine', [$source, 'published', false]);
+
+        $this->assertIsString($toggled);
+        $this->assertStringContainsString("date: '13:34 07/23/2017'", $toggled);
+        $this->assertStringContainsString('# keep me', $toggled);
+        $this->assertStringContainsString('title: Hello', $toggled);
+        $this->assertStringContainsString('published: false', $toggled);
+        $this->assertStringContainsString('Body stays', $toggled);
+        $this->assertStringNotContainsString('published: true', $toggled);
+
+        $copied = $this->call('setFrontmatterLine', [$toggled, 'title', 'Hello (Copy)']);
+        $this->assertStringContainsString('Hello (Copy)', $copied);
+        $this->assertStringContainsString("date: '13:34 07/23/2017'", $copied);
+        $this->assertStringContainsString('# keep me', $copied);
+        $this->assertStringContainsString('published: false', $copied);
+    }
+
     public function testCopyAndDeleteStayInsideTheAllowedRoot(): void
     {
         $root = $this->makeTree();

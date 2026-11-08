@@ -754,9 +754,10 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         }
 
         $header[$field] = !($header[$field] ?? true);
-
-        $yaml = \Symfony\Component\Yaml\Yaml::dump($header, 2, 2);
-        $newContent = "---\n" . $yaml . "---\n" . $matches[2];
+        $newContent = $this->setFrontmatterLine($content, $field, (bool)$header[$field]);
+        if ($newContent === null) {
+            return ApiResponse::create(['success' => false, 'message' => 'Invalid frontmatter'], 400);
+        }
         file_put_contents($itemFile['file'], $newContent);
 
         return ApiResponse::create([
@@ -809,12 +810,22 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             if (preg_match('/^---\s*\n(.*?\n)---\s*\n(.*)$/s', $content, $matches)) {
                 $header = \Symfony\Component\Yaml\Yaml::parse($matches[1]);
                 if (is_array($header)) {
-                    $header['title'] = ($header['title'] ?? '') . ' (Copy)';
-                    $header['published'] = false;
+                    $title = $header['title'] ?? '';
+                    if (is_array($title)) {
+                        $title = implode(' ', array_map(static function ($part): string {
+                            return is_scalar($part) ? trim((string)$part) : '';
+                        }, $title));
+                    }
+                    $title = trim(is_scalar($title) ? (string)$title : '');
+                    $title = $title === '' ? 'Copy' : $title . ' (Copy)';
 
-                    $yaml = \Symfony\Component\Yaml\Yaml::dump($header, 2, 2);
-                    $newContent = "---\n" . $yaml . "---\n" . $matches[2];
-                    file_put_contents($itemFile['file'], $newContent);
+                    $newContent = $this->setFrontmatterLine($content, 'title', $title);
+                    if ($newContent !== null) {
+                        $newContent = $this->setFrontmatterLine($newContent, 'published', false);
+                    }
+                    if ($newContent !== null) {
+                        file_put_contents($itemFile['file'], $newContent);
+                    }
                 }
             }
         }
@@ -1318,6 +1329,40 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         }
 
         return false;
+    }
+
+    /**
+     * Replace one top-level front-matter line and leave every other line as it was written.
+     */
+    protected function setFrontmatterLine(string $content, string $key, mixed $value): ?string
+    {
+        if (!preg_match('/^[A-Za-z][A-Za-z0-9_-]*$/', $key)) {
+            return null;
+        }
+
+        $crlf = str_contains($content, "\r\n");
+        $content = str_replace("\r\n", "\n", $content);
+        if (!preg_match('/^---\s*\n(.*?\n)---\s*\n(.*)$/s', $content, $matches)) {
+            return null;
+        }
+
+        $line = rtrim(\Symfony\Component\Yaml\Yaml::dump([$key => $value], 2, 2), "\n");
+        $pattern = '/^' . preg_quote($key, '/') . '\s*:.*(?:\n[ \t].*)*/m';
+        if (preg_match($pattern, $matches[1])) {
+            $header = preg_replace($pattern, $line, $matches[1], 1);
+        } else {
+            $header = rtrim($matches[1], "\n") . "\n" . $line . "\n";
+        }
+        if (!is_string($header)) {
+            return null;
+        }
+
+        $updated = "---\n" . $header . "---\n" . $matches[2];
+        if ($crlf) {
+            $updated = str_replace("\n", "\r\n", $updated);
+        }
+
+        return $updated;
     }
 
     private function slugify(string $text): string
