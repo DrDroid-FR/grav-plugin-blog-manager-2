@@ -950,7 +950,7 @@ class BlogManagerElement extends HTMLElement {
         .then(data => {
             const payload = getApiResponseData(data);
             if (payload.success === true && payload.edit_url) {
-                window.location.href = payload.edit_url;
+                this.openInAdmin(payload.edit_url);
             } else {
                 this.notify('error', apiText(payload.message, 'createFailed'));
             }
@@ -1416,7 +1416,7 @@ exportSelectedPosts() {
         this.shadowRoot.querySelector('[data-new-post]').addEventListener('click', () => this.newPost());
         this.shadowRoot.querySelector('[data-export-all]').addEventListener('click', () => this.exportAllPosts());
         this.shadowRoot.querySelector('[data-scan]').addEventListener('click', () => this.scanBlog());
-        this.shadowRoot.querySelector('[data-parameters]').addEventListener('click', () => { window.location.href = this.settingsUrl(); });
+        this.shadowRoot.querySelector('[data-parameters]').addEventListener('click', () => this.openInAdmin(this.settingsUrl()));
         this.shadowRoot.querySelector('[data-import]').addEventListener('click', () => this.shadowRoot.getElementById('bm-import-file').click());
         this.shadowRoot.getElementById('bm-import-file').addEventListener('change', (e) => {
             const file = e.target.files && e.target.files[0];
@@ -1660,6 +1660,17 @@ exportSelectedPosts() {
     settingsUrl() {
         const base = String(window.__GRAV_CONFIG__?.basePath || '/admin').replace(/\/$/, '');
         return base + '/plugins/blog-manager';
+    }
+
+    openInAdmin(url) {
+        if (typeof window.__GRAV_NAVIGATE === 'function') {
+            const result = window.__GRAV_NAVIGATE(url);
+            if (result && typeof result.catch === 'function') {
+                result.catch(() => { window.location.href = url; });
+            }
+            return;
+        }
+        window.location.href = url;
     }
 
     notify(level, message) {
