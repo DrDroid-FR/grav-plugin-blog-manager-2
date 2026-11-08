@@ -119,7 +119,7 @@ Use the checkbox on each post, or the header **Select all** checkbox in list vie
 
 - **New Post** — Creates a new unpublished post via Grav's native page creation, then redirects to the editor
 - **Export All** — Downloads every loaded post as a ZIP file. Selected export remains on the bulk bar.
-- **Import** — Uploads a ZIP of post folders. Entries that leave the archive, or that are not post folders, are rejected. A folder name that already exists is saved with an `-import-` suffix.
+- **Import** — Uploads a ZIP of post folders. Entries that leave the archive, or that are not post folders, are rejected. A slug that is already a page is saved as `slug-2`.
 - **Filter Panel** — Search, filter by status, date range, category, tag, language
 - **Scan for articles** — Square refresh button on the right, under the filters. Counts every child folder that contains an article, including folders without a numeric prefix, then reloads the list.
 - **Parameters** — Square sliders button beside Scan. Opens **Plugins → Blog Manager**.

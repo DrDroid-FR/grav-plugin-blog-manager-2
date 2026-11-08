@@ -219,32 +219,17 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             return null;
         }
 
-        // Try exact match first
         $exact = $this->resolvePath($blogDir, $folder);
         if ($exact && is_dir($exact)) {
             return $exact;
         }
 
-        // Try to find by stripped prefix match (folder might be passed without timestamp prefix)
-        $strippedParam = $this->stripPostFolderPrefix($folder);
-        if ($strippedParam !== $folder) {
-            // param had prefix, already tried exact
-        }
-
-        // Scan blog dir for matching folders
-        $dirs = glob($blogDir . '/[0-9]*', GLOB_ONLYDIR);
-        if (is_array($dirs)) {
-            foreach ($dirs as $postDir) {
-                $basename = basename($postDir);
-                if ($basename === $folder) {
-                    return $this->resolvePath($blogDir, $basename);
-                }
-                if ($this->stripPostFolderPrefix($basename) === $strippedParam) {
-                    return $this->resolvePath($blogDir, $basename);
-                }
-                if ($this->stripPostFolderPrefix($basename) === $folder) {
-                    return $this->resolvePath($blogDir, $basename);
-                }
+        $wanted = $this->stripPostFolderPrefix($folder);
+        foreach (glob($blogDir . '/[0-9]*', GLOB_ONLYDIR) ?: [] as $postDir) {
+            $basename = basename($postDir);
+            $slug = $this->stripPostFolderPrefix($basename);
+            if ($slug === $wanted || $slug === $folder) {
+                return $this->resolvePath($blogDir, $basename);
             }
         }
 
@@ -482,18 +467,6 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         return true;
     }
 
-    protected function folderFromRequest(ServerRequestInterface $request): string
-    {
-        $folder = $this->getRouteParam($request, 'folder');
-        if (is_string($folder) && $folder !== '') {
-            return $folder;
-        }
-
-        $attribute = $request->getAttribute('folder');
-
-        return is_string($attribute) ? $attribute : '';
-    }
-
     protected function getRequestBody(ServerRequestInterface $request): array
     {
         $json = $request->getAttribute('json_body');
@@ -625,7 +598,6 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             return ApiResponse::create([
                 'success' => true,
                 'posts' => $posts,
-                'new_post_url' => $this->adminEditUrl(...$this->blogEditSegments())
             ]);
         } catch (\Exception $e) {
             if (isset($this->grav['log'])) {
@@ -803,32 +775,7 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             return ApiResponse::create(['success' => false, 'message' => 'Failed to duplicate post'], 500);
         }
 
-        // Update item.md in the new post
-        $itemFile = $this->findItemFile($newPostDir);
-        if ($itemFile) {
-            $content = file_get_contents($itemFile['file']);
-            if (preg_match('/^---\s*\n(.*?\n)---\s*\n(.*)$/s', $content, $matches)) {
-                $header = \Symfony\Component\Yaml\Yaml::parse($matches[1]);
-                if (is_array($header)) {
-                    $title = $header['title'] ?? '';
-                    if (is_array($title)) {
-                        $title = implode(' ', array_map(static function ($part): string {
-                            return is_scalar($part) ? trim((string)$part) : '';
-                        }, $title));
-                    }
-                    $title = trim(is_scalar($title) ? (string)$title : '');
-                    $title = $title === '' ? 'Copy' : $title . ' (Copy)';
-
-                    $newContent = $this->setFrontmatterLine($content, 'title', $title);
-                    if ($newContent !== null) {
-                        $newContent = $this->setFrontmatterLine($newContent, 'published', false);
-                    }
-                    if ($newContent !== null) {
-                        file_put_contents($itemFile['file'], $newContent);
-                    }
-                }
-            }
-        }
+        $this->markDuplicateArticles($newPostDir);
 
         $editUrl = $this->adminEditUrl(...$this->blogEditSegments($this->stripPostFolderPrefix($newFolder)));
 
@@ -1042,9 +989,10 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
                     $skipped++;
                     continue;
                 }
-                $destName = $name;
-                if (is_dir($blogReal . DIRECTORY_SEPARATOR . $destName)) {
-                    $destName .= '-import-' . date('YmdHis');
+                $destName = $this->importedFolderName($blogReal, $name);
+                if ($destName === null) {
+                    $skipped++;
+                    continue;
                 }
                 $dest = $blogReal . DIRECTORY_SEPARATOR . $destName;
                 if ($this->copyTree($postDir, $dest, $blogReal)) {
@@ -1294,6 +1242,66 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         }
 
         return $nested;
+    }
+
+    protected function importedFolderName(string $blogDir, string $sourceName): ?string
+    {
+        if ($this->isUnsafeName($sourceName)) {
+            return null;
+        }
+
+        [, $slug] = \Grav\Common\Page\PageOrdering::parse($sourceName);
+        if ($slug === '' || $this->isUnsafeSegment($slug)) {
+            return null;
+        }
+
+        $exact = $blogDir . DIRECTORY_SEPARATOR . $sourceName;
+        if (!$this->postFolderTaken($blogDir, $slug) && !is_dir($exact)) {
+            return $sourceName;
+        }
+
+        return $this->uniquePostFolder($blogDir, $slug);
+    }
+
+    protected function markDuplicateArticles(string $postDir): void
+    {
+        foreach ($this->findItemFiles($postDir) as $itemFile) {
+            $content = file_get_contents($itemFile['file']);
+            if (!is_string($content)) {
+                continue;
+            }
+            $updated = $this->unpublishedCopy($content);
+            if ($updated !== null) {
+                file_put_contents($itemFile['file'], $updated);
+            }
+        }
+    }
+
+    protected function unpublishedCopy(string $content): ?string
+    {
+        if (!preg_match('/^---\s*\n(.*?\n)---\s*\n(.*)$/s', $content, $matches)) {
+            return null;
+        }
+        $header = \Symfony\Component\Yaml\Yaml::parse($matches[1]);
+        if (!is_array($header)) {
+            return null;
+        }
+
+        $title = $header['title'] ?? '';
+        if (is_array($title)) {
+            $title = implode(' ', array_map(static function ($part): string {
+                return is_scalar($part) ? trim((string)$part) : '';
+            }, $title));
+        }
+        $title = trim(is_scalar($title) ? (string)$title : '');
+        $title = $title === '' ? 'Copy' : $title . ' (Copy)';
+
+        $updated = $this->setFrontmatterLine($content, 'title', $title);
+        if ($updated === null) {
+            return null;
+        }
+
+        return $this->setFrontmatterLine($updated, 'published', false);
     }
 
     protected function uniquePostFolder(string $blogDir, string $slug): ?string

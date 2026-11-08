@@ -624,7 +624,6 @@ class BlogManagerElement extends HTMLElement {
         this.attachShadow({ mode: 'open' });
         this.posts = [];
         this.filteredPosts = [];
-        this.newPostUrl = '#';
         this.currentView = sessionStorage.getItem('blogManagerView') || 'grid';
         this.categories = [];
         this.tags = [];
@@ -677,7 +676,6 @@ class BlogManagerElement extends HTMLElement {
             if (payload.status === 'success' || payload.success === true) {
                 this.posts = payload.posts || [];
                 this.filteredPosts = this.posts.slice();
-                this.newPostUrl = payload.new_post_url || '#';
                 this.selectedPosts = {};
                 this.lastSelectedIndex = -1;
                 this.extractTaxonomies();
@@ -1701,4 +1699,3 @@ exportSelectedPosts() {
 if (!customElements.get(TAG)) {
     customElements.define(TAG, BlogManagerElement);
 }
-console.log('[BlogManager] Web component loaded');

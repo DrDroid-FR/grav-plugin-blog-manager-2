@@ -211,7 +211,7 @@ final class BlogManagerApiControllerTest extends TestCase
         $this->assertSame('01.hello', basename($posts[0]));
     }
 
-    public function testRequestBodyPrefersParsedJsonAndRouteParams(): void
+    public function testRequestBodyPrefersParsedJson(): void
     {
         $request = (new ServerRequest('POST', '/api/v1/blog-manager/export'))
             ->withHeader('Content-Type', 'application/json')
@@ -220,10 +220,44 @@ final class BlogManagerApiControllerTest extends TestCase
 
         $body = $this->call('getRequestBody', [$request]);
         $this->assertSame(['01.hello'], $body['folders']);
+    }
 
-        $image = (new ServerRequest('GET', '/api/v1/blog-manager/posts/01.hello/image'))
-            ->withAttribute('route_params', ['folder' => '01.hello']);
-        $this->assertSame('01.hello', $this->call('folderFromRequest', [$image]));
+    public function testImportKeepsAFreeFolderAndRenamesATakenSlug(): void
+    {
+        $root = $this->makeTree();
+        $blog = $root . DIRECTORY_SEPARATOR . 'blog';
+        mkdir($blog);
+
+        $this->assertSame('02.news', $this->call('importedFolderName', [$blog, '02.news']));
+        $this->assertSame('hello', $this->call('importedFolderName', [$blog, 'hello']));
+
+        mkdir($blog . DIRECTORY_SEPARATOR . '01.hello');
+        $this->assertSame('hello-2', $this->call('importedFolderName', [$blog, '01.hello']));
+        $this->assertSame('hello-2', $this->call('importedFolderName', [$blog, 'hello']));
+        $this->assertNull($this->call('importedFolderName', [$blog, '../secret']));
+    }
+
+    public function testDuplicateMarksEveryLanguageUnpublished(): void
+    {
+        $root = $this->makeTree();
+        $post = $root . DIRECTORY_SEPARATOR . '01.hello';
+        mkdir($post);
+        $article = "---\ntitle: Hello\ndate: '13:34 07/23/2017'\npublished: true\n# keep me\n---\n\nBody\n";
+        file_put_contents($post . DIRECTORY_SEPARATOR . 'item.md', $article);
+        file_put_contents($post . DIRECTORY_SEPARATOR . 'item.en.md', str_replace('title: Hello', 'title: Hello EN', $article));
+
+        $this->call('markDuplicateArticles', [$post]);
+
+        $default = file_get_contents($post . DIRECTORY_SEPARATOR . 'item.md');
+        $english = file_get_contents($post . DIRECTORY_SEPARATOR . 'item.en.md');
+        $this->assertStringContainsString('Hello (Copy)', $default);
+        $this->assertStringContainsString('Hello EN (Copy)', $english);
+        $this->assertStringContainsString('published: false', $default);
+        $this->assertStringContainsString('published: false', $english);
+        $this->assertStringContainsString("date: '13:34 07/23/2017'", $default);
+        $this->assertStringContainsString('# keep me', $english);
+        $this->assertStringNotContainsString('published: true', $default);
+        $this->assertStringNotContainsString('published: true', $english);
     }
 
     public function testEditUrlUsesTheAdmin2Route(): void
