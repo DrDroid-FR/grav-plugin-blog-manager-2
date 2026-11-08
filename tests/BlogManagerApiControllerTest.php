@@ -218,6 +218,36 @@ final class BlogManagerApiControllerTest extends TestCase
         $this->assertIsInt($gravDate['date']);
     }
 
+    public function testZipImportSkipsDangerousFilesAndKeepsMedia(): void
+    {
+        $root = $this->makeTree();
+        $zipPath = $root . DIRECTORY_SEPARATOR . 'mixed.zip';
+        $zip = new ZipArchive();
+        $zip->open($zipPath, ZipArchive::CREATE);
+        $zip->addFromString('01.hello/item.md', "---\ntitle: Hello\n---\n");
+        $zip->addFromString('01.hello/cover.jpg', 'jpeg');
+        $zip->addFromString('01.hello/shell.php', '<?php echo 1;');
+        $zip->addFromString('01.hello/.htaccess', 'Deny from all');
+        $zip->addFromString('01.hello/icon.svg', '<svg></svg>');
+        $zip->addFromString('01.hello/page.html', '<script></script>');
+        $zip->close();
+
+        $extract = $root . DIRECTORY_SEPARATOR . 'out';
+        mkdir($extract);
+        $opened = new ZipArchive();
+        $this->assertTrue($opened->open($zipPath) === true);
+        $this->assertTrue($this->call('extractZipSafely', [$opened, $extract]));
+        $opened->close();
+
+        $post = $extract . DIRECTORY_SEPARATOR . '01.hello';
+        $this->assertFileExists($post . DIRECTORY_SEPARATOR . 'item.md');
+        $this->assertFileExists($post . DIRECTORY_SEPARATOR . 'cover.jpg');
+        $this->assertFileDoesNotExist($post . DIRECTORY_SEPARATOR . 'shell.php');
+        $this->assertFileDoesNotExist($post . DIRECTORY_SEPARATOR . '.htaccess');
+        $this->assertFileDoesNotExist($post . DIRECTORY_SEPARATOR . 'icon.svg');
+        $this->assertFileDoesNotExist($post . DIRECTORY_SEPARATOR . 'page.html');
+    }
+
     private function call(string $method, array $args): mixed
     {
         $reflection = new ReflectionMethod($this->controller, $method);

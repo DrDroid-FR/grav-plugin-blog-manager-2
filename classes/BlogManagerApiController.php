@@ -1002,6 +1002,7 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             }
 
             $parts = [];
+            $hidden = false;
             foreach (explode('/', $name) as $part) {
                 if ($part === '' || $part === '.') {
                     continue;
@@ -1009,9 +1010,13 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
                 if ($this->isUnsafeName($part)) {
                     return false;
                 }
+                if (str_starts_with($part, '.')) {
+                    $hidden = true;
+                    break;
+                }
                 $parts[] = $part;
             }
-            if ($parts === []) {
+            if ($hidden || $parts === []) {
                 continue;
             }
 
@@ -1039,12 +1044,22 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
                 continue;
             }
 
-            $contents = $zip->getFromIndex($i);
-            if ($contents === false) {
+            if (!$this->importFileAllowed($last)) {
+                continue;
+            }
+
+            $size = $stat['size'] ?? null;
+            if (!is_int($size) && !(is_float($size) && $size == (int)$size)) {
                 return false;
             }
-            $written += strlen($contents);
-            if ($written > $maxBytes) {
+            $size = (int)$size;
+            if ($size < 0 || $written + $size > $maxBytes) {
+                return false;
+            }
+            $written += $size;
+
+            $contents = $zip->getFromIndex($i);
+            if ($contents === false) {
                 return false;
             }
             $target = $parentReal . DIRECTORY_SEPARATOR . $last;
@@ -1112,6 +1127,39 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         }
 
         return $items;
+    }
+
+    protected function importFileAllowed(string $filename): bool
+    {
+        $base = strtolower(basename(str_replace('\\', '/', $filename)));
+        if ($base === '' || str_starts_with($base, '.')) {
+            return false;
+        }
+
+        $extension = pathinfo($base, PATHINFO_EXTENSION);
+        if ($extension === '' || $extension === 'defaults') {
+            return false;
+        }
+        if ($extension === 'md') {
+            return true;
+        }
+
+        $dangerous = array_map(
+            'strtolower',
+            (array)$this->grav['config']->get('security.uploads_dangerous_extensions', [])
+        );
+        if (in_array($extension, $dangerous, true)) {
+            return false;
+        }
+
+        $types = $this->grav['config']->get('media.types');
+        $spec = is_array($types) ? ($types[$extension] ?? null) : null;
+        if (!is_array($spec)) {
+            return false;
+        }
+
+        // SVG is a media type, and it is also markup the browser runs from the site origin.
+        return ($spec['type'] ?? '') !== 'vector';
     }
 
     private function collectImportPostDirs(string $rootReal): array
