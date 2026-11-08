@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Grav\Common\Grav;
+use Grav\Common\Utils;
 use Grav\Framework\Acl\Permissions;
 use Grav\Plugin\BlogManager\BlogManagerApiController;
 use Grav\Plugin\BlogManagerPlugin;
@@ -190,6 +191,31 @@ final class BlogManagerApiControllerTest extends TestCase
         $this->assertTrue($permissions->hasAction('blog-manager.posts.write'));
         $this->assertTrue($permissions->hasAction('blog-manager.posts.delete'));
         $this->assertTrue($permissions->hasAction('blog-manager.posts.export'));
+    }
+
+    public function testPresentPostNormalizesSkeletonFrontMatter(): void
+    {
+        $presented = $this->call('presentPost', [[
+            'title' => 12,
+            'date' => 20240301,
+            'taxonomy' => [
+                'category' => 'blog',
+                'tag' => 7,
+            ],
+        ], 'my-post']);
+
+        $this->assertSame('12', $presented['title']);
+        $this->assertSame(['blog'], $presented['taxonomy']['category']);
+        $this->assertSame(['7'], $presented['taxonomy']['tag']);
+        $this->assertSame(Utils::date2timestamp(20240301), $presented['date']);
+
+        $gravDate = $this->call('presentPost', [[
+            'title' => 'Hello',
+            'date' => '13:34 07/23/2017',
+            'taxonomy' => ['category' => ['News']],
+        ], 'hello']);
+        $this->assertSame(Utils::date2timestamp('13:34 07/23/2017'), $gravDate['date']);
+        $this->assertIsInt($gravDate['date']);
     }
 
     private function call(string $method, array $args): mixed

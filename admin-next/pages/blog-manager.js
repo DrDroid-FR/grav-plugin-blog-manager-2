@@ -701,8 +701,10 @@ class BlogManagerElement extends HTMLElement {
         const lngs = {};
         this.posts.forEach(post => {
             if (post.taxonomy) {
-                if (post.taxonomy.category) post.taxonomy.category.forEach(c => cats[c] = true);
-                if (post.taxonomy.tag) post.taxonomy.tag.forEach(t => tgs[t] = true);
+                const categories = Array.isArray(post.taxonomy.category) ? post.taxonomy.category : [];
+                const tags = Array.isArray(post.taxonomy.tag) ? post.taxonomy.tag : [];
+                categories.forEach(c => cats[c] = true);
+                tags.forEach(t => tgs[t] = true);
             }
             if (post.lang) lngs[post.lang] = true;
         });
@@ -756,11 +758,11 @@ class BlogManagerElement extends HTMLElement {
                 if (!ymd || ymd > dateEnd) return false;
             }
             if (category) {
-                const cats = post.taxonomy?.category || [];
+                const cats = Array.isArray(post.taxonomy?.category) ? post.taxonomy.category : [];
                 if (!cats.includes(category)) return false;
             }
             if (tag) {
-                const tags = post.taxonomy?.tag || [];
+                const tags = Array.isArray(post.taxonomy?.tag) ? post.taxonomy.tag : [];
                 if (!tags.includes(tag)) return false;
             }
             return true;
@@ -775,7 +777,12 @@ class BlogManagerElement extends HTMLElement {
     }
 
     parseDateStr(dateStr) {
-        if (!dateStr) return null;
+        if (dateStr === null || dateStr === undefined || dateStr === '') return null;
+        if (typeof dateStr === 'number' && Number.isFinite(dateStr)) {
+            const fromStamp = new Date(dateStr < 1e12 ? dateStr * 1000 : dateStr);
+            return Number.isNaN(fromStamp.getTime()) ? null : fromStamp;
+        }
+        if (typeof dateStr !== 'string') dateStr = String(dateStr);
         let s = dateStr.trim().replace(/['"]/g, '');
         const spaceIdx = s.indexOf(' ');
         let hasTime = false;
@@ -1582,8 +1589,8 @@ exportSelectedPosts() {
                 ? `<span class="badge green toggle-badge" data-field="visible" data-folder="${f}" data-lang="${langAttr}" title="${t('clickHide')}">${Icons.eye}</span>`
                 : `<span class="badge toggle-badge" data-field="visible" data-folder="${f}" data-lang="${langAttr}" title="${t('clickShow')}">${Icons.eyeSlash}</span>`;
             
-            const categories = post.taxonomy?.category || [];
-            const tags = post.taxonomy?.tag || [];
+            const categories = Array.isArray(post.taxonomy?.category) ? post.taxonomy.category : [];
+            const tags = Array.isArray(post.taxonomy?.tag) ? post.taxonomy.tag : [];
             const categoryStr = categories.slice(0, 2).join(', ') + (categories.length > 2 ? '…' : '');
             const tagsHtml = tags.slice(0, 3).map(tag => `<span class="tag-pill">${this.escapeHtml(tag)}</span>`).join('') + (tags.length > 3 ? `<span class="tag-pill">+${tags.length - 3}</span>` : '');
             
@@ -1660,8 +1667,7 @@ exportSelectedPosts() {
     }
 
     escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     render() {

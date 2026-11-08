@@ -473,13 +473,14 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
                     $editUrl .= '?lang=' . rawurlencode($itemFile['lang']);
                 }
 
+                $presented = $this->presentPost($header, $postFolder);
                 $post = [
                     'folder' => $postFolder,
-                    'title' => $header['title'] ?? $postFolder,
-                    'date' => $header['date'] ?? null,
+                    'title' => $presented['title'],
+                    'date' => $presented['date'],
                     'visible' => $header['visible'] ?? true,
                     'published' => $header['published'] ?? true,
-                    'taxonomy' => is_array($header['taxonomy'] ?? null) ? $header['taxonomy'] : [],
+                    'taxonomy' => $presented['taxonomy'],
                     'image' => '',
                     'image_url' => '',
                     'edit_url' => $editUrl,
@@ -520,9 +521,7 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             }
 
             usort($posts, function ($a, $b) {
-                $dateA = $a['date'] ? strtotime($a['date']) : 0;
-                $dateB = $b['date'] ? strtotime($b['date']) : 0;
-                return $dateB <=> $dateA;
+                return ((int)($b['date'] ?? 0)) <=> ((int)($a['date'] ?? 0));
             });
 
             return ApiResponse::create([
@@ -1055,6 +1054,64 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         }
 
         return true;
+    }
+
+    protected function presentPost(array $header, string $folder): array
+    {
+        $title = $header['title'] ?? $folder;
+        if (is_array($title)) {
+            $title = implode(' ', array_map(static function ($part): string {
+                return is_scalar($part) ? trim((string)$part) : '';
+            }, $title));
+        } elseif (is_scalar($title)) {
+            $title = trim((string)$title);
+        } else {
+            $title = '';
+        }
+        if ($title === '') {
+            $title = $folder;
+        }
+
+        $taxonomy = is_array($header['taxonomy'] ?? null) ? $header['taxonomy'] : [];
+        $taxonomy['category'] = $this->stringList($taxonomy['category'] ?? null);
+        $taxonomy['tag'] = $this->stringList($taxonomy['tag'] ?? null);
+
+        $date = null;
+        if (isset($header['date']) && $header['date'] !== '' && $header['date'] !== null) {
+            $stamp = \Grav\Common\Utils::date2timestamp($header['date']);
+            if ($stamp !== false) {
+                $date = (int)$stamp;
+            }
+        }
+
+        return [
+            'title' => $title,
+            'date' => $date,
+            'taxonomy' => $taxonomy,
+        ];
+    }
+
+    protected function stringList(mixed $value): array
+    {
+        if (is_scalar($value)) {
+            $value = [$value];
+        }
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $items = [];
+        foreach ($value as $item) {
+            if (!is_scalar($item)) {
+                continue;
+            }
+            $text = trim((string)$item);
+            if ($text !== '') {
+                $items[] = $text;
+            }
+        }
+
+        return $items;
     }
 
     private function collectImportPostDirs(string $rootReal): array
