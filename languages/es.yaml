@@ -1,7 +1,7 @@
 PLUGIN_BLOG_MANAGER:
   PLUGIN_STATUS: 'Estado del complemento'
   BLOG_PATH: 'Ruta del blog'
-  BLOG_PATH_HELP: 'Ruta de la carpeta del blog (p. ej. /blog)'
+  BLOG_PATH_HELP: 'Ruta de la página del blog, por ejemplo /blog o /news/blog'
   MENU_TITLE: 'Gestor del blog'
   PERMISSIONS_POSTS_READ: 'Leer artículos del blog'
   PERMISSIONS_POSTS_WRITE: 'Escribir artículos del blog'

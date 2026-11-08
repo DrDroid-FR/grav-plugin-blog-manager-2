@@ -2,7 +2,7 @@ en: &en
   PLUGIN_BLOG_MANAGER:
     PLUGIN_STATUS: 'Plugin Status'
     BLOG_PATH: 'Blog Path'
-    BLOG_PATH_HELP: 'The path to the blog folder (e.g. /blog)'
+    BLOG_PATH_HELP: 'Route of the blog page, for example /blog or /news/blog'
     MENU_TITLE: 'Blog Manager'
     PERMISSIONS_POSTS_READ: 'Read Blog Posts'
     PERMISSIONS_POSTS_WRITE: 'Write Blog Posts'
@@ -15,7 +15,7 @@ fr: &fr
   PLUGIN_BLOG_MANAGER:
     PLUGIN_STATUS: 'Statut du plugin'
     BLOG_PATH: 'Chemin du blog'
-    BLOG_PATH_HELP: 'Le chemin vers le dossier du blog (ex: /blog)'
+    BLOG_PATH_HELP: 'Route de la page blog, par exemple /blog ou /news/blog'
     MENU_TITLE: 'Gestionnaire de Blog'
     PERMISSIONS_POSTS_READ: 'Lire les articles du blog'
     PERMISSIONS_POSTS_WRITE: 'Écrire les articles du blog'
@@ -28,7 +28,7 @@ es: &es
   PLUGIN_BLOG_MANAGER:
     PLUGIN_STATUS: 'Estado del complemento'
     BLOG_PATH: 'Ruta del blog'
-    BLOG_PATH_HELP: 'Ruta de la carpeta del blog (p. ej. /blog)'
+    BLOG_PATH_HELP: 'Ruta de la página del blog, por ejemplo /blog o /news/blog'
     MENU_TITLE: 'Gestor del blog'
     PERMISSIONS_POSTS_READ: 'Leer artículos del blog'
     PERMISSIONS_POSTS_WRITE: 'Escribir artículos del blog'
@@ -41,7 +41,7 @@ it: &it
   PLUGIN_BLOG_MANAGER:
     PLUGIN_STATUS: 'Stato del plugin'
     BLOG_PATH: 'Percorso del blog'
-    BLOG_PATH_HELP: 'Percorso della cartella del blog (es. /blog)'
+    BLOG_PATH_HELP: 'Percorso della pagina del blog, ad esempio /blog o /news/blog'
     MENU_TITLE: 'Gestione blog'
     PERMISSIONS_POSTS_READ: 'Leggere gli articoli del blog'
     PERMISSIONS_POSTS_WRITE: 'Scrivere gli articoli del blog'
@@ -53,7 +53,7 @@ de: &de
   PLUGIN_BLOG_MANAGER:
     PLUGIN_STATUS: 'Plugin-Status'
     BLOG_PATH: 'Blog-Pfad'
-    BLOG_PATH_HELP: 'Pfad zum Blog-Ordner (z. B. /blog)'
+    BLOG_PATH_HELP: 'Route der Blog-Seite, zum Beispiel /blog oder /news/blog'
     MENU_TITLE: 'Blog-Verwaltung'
     PERMISSIONS_POSTS_READ: 'Blogbeiträge lesen'
     PERMISSIONS_POSTS_WRITE: 'Blogbeiträge schreiben'

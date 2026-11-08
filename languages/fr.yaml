@@ -1,7 +1,7 @@
 PLUGIN_BLOG_MANAGER:
   PLUGIN_STATUS: 'Statut du plugin'
   BLOG_PATH: 'Chemin du blog'
-  BLOG_PATH_HELP: 'Le chemin vers le dossier du blog (ex: /blog)'
+  BLOG_PATH_HELP: 'Route de la page blog, par exemple /blog ou /news/blog'
   MENU_TITLE: 'Gestionnaire de Blog'
   PERMISSIONS_POSTS_READ: 'Lire les articles du blog'
   PERMISSIONS_POSTS_WRITE: 'Écrire les articles du blog'

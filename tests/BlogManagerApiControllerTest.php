@@ -74,8 +74,34 @@ final class BlogManagerApiControllerTest extends TestCase
         $this->assertTrue($this->call('isUnsafeSegment', ['../secret']));
         $this->assertNull($this->call('folderForSlug', ['../secret']));
         $this->assertNull($this->call('folderForSlug', ['blog/../secret']));
+        $this->assertNull($this->call('normalizeBlogRoute', ['news//blog']));
+        $this->assertNull($this->call('normalizeBlogRoute', ['']));
         $this->assertFalse($this->call('deleteTree', [$sibling, $blog]));
         $this->assertDirectoryExists($sibling);
+    }
+
+    public function testBlogRouteMatchesAnyDeclaredPageFolder(): void
+    {
+        $root = $this->makeTree();
+        $nested = $root . DIRECTORY_SEPARATOR . '01.news' . DIRECTORY_SEPARATOR . '02.blog';
+        $post = $nested . DIRECTORY_SEPARATOR . '03.hello';
+        mkdir($post, 0755, true);
+        file_put_contents($post . DIRECTORY_SEPARATOR . 'item.md', "---\ntitle: Hello\n---\n");
+        $top = $root . DIRECTORY_SEPARATOR . '04.journal';
+        mkdir($top);
+
+        $found = $this->call('folderForRoute', [$root, 'news/blog']);
+        $this->assertNotNull($found);
+        $this->assertSame(realpath($nested), realpath($found));
+        $this->assertSame(realpath($top), realpath($this->call('folderForRoute', [$root, 'journal'])));
+        $this->assertNull($this->call('folderForRoute', [$root, 'news/missing']));
+        $this->assertNull($this->call('folderForRoute', [$root, 'news/../blog']));
+
+        Grav::instance()['config']->set('plugins.blog-manager.blog_path', '/news/blog');
+        $url = $this->call('adminEditUrl', $this->call('blogEditSegments', ['my-post']));
+        $this->assertStringContainsString('/pages/edit/news/blog/my-post', $url);
+        $this->assertStringNotContainsString('news%2Fblog', $url);
+        Grav::instance()['config']->set('plugins.blog-manager.blog_path', '/blog');
     }
 
     public function testCopyAndDeleteStayInsideTheAllowedRoot(): void

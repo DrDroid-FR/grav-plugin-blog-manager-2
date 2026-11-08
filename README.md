@@ -25,7 +25,7 @@ A modern **Admin2 (Grav 2.x) plugin** that provides a dashboard for managing blo
 - ✅ **Bulk Actions** — Bulk Publish, Visible, Duplicate, Delete, Export, and Clear, with confirmation modals for delete and duplicate
 - 📦 **Export & Import** — Export selected posts or every post as a ZIP. Import a ZIP of post folders from the sidebar.
 - 🔄 **Scan and Parameters** — Two square icon buttons sit on the right, under the filters. Scan looks for articles. Parameters opens the plugin settings. The same scan is also beside Blog Path on the settings page.
-- 🔁 **Numeric Prefix Support** — Auto-detects Grav's numbered folders (e.g. `03.blog`) from the configured path
+- 🔁 **Any Grav blog page** — Blog Path accepts the route Grav gives that page, including a numbered folder such as `03.blog` and a nested route such as `/news/blog`
 - 📂 **Language-Specific Items** — Supports blog's `item.md` and `item.{lang}.md` files
 - 🌍 **Locale-Aware Dates** — Uses `Intl.DateTimeFormat` for localized date display
 - 🌐 **English, French, Spanish, Italian, and German** — Interface strings live in the web component and the blog-path field. Blueprint and permission labels live in `languages/`. Short codes (`en`, `fr`, `es`, `it`, `de`) and Admin2 regional codes (`en-US`, `fr-FR`, `es-ES`, `it-IT`, `de-DE`, and the other aliases in `languages.yaml`) all resolve.
@@ -63,7 +63,7 @@ After installation, go to **Plugins → Blog Manager** to configure:
 | Plugin Enabled | Enable or disable the plugin | Yes |
 | Blog Path | Route path to the blog page | `/blog` |
 
-The post list resolves **Blog Path** on each request, including numbered folders such as `03.blog`.
+The post list resolves **Blog Path** on each request. A top-level page such as `03.blog` and a nested page such as `01.news/02.blog` both match.
 
 ### Permissions
 
@@ -78,9 +78,9 @@ The post list resolves **Blog Path** on each request, including numbered folders
 
 ### Blog Detection
 
-**Blog Path** is the route of the blog page, not a folder on disk. It is one segment, such as `/blog`. Leading and trailing slashes are ignored. A nested route such as `/blog/news` is not accepted.
+**Blog Path** is the route of the blog page, not a folder on disk. `/blog` and a nested route such as `/news/blog` are both accepted. Leading and trailing slashes are ignored.
 
-Each request looks only at the folders directly under `user/pages`. A leading number and dot are removed, then the rest is compared with that segment. Both `blog` and `03.blog` match `/blog`. If two folders reduce to the same slug, the first one found is used.
+Grav's own page is used when that route is already declared. Otherwise each segment is matched to a folder under `user/pages`, then to a folder inside the previous match. A leading number and dot are removed first, so `blog` and `03.blog` both match `/blog`, and `01.news/02.blog` matches `/news/blog`. If two folders reduce to the same slug, the first one found is used.
 
 A post is a folder directly inside that blog folder which contains `item.md` or `item.{lang}.md`. The post folder itself may be numbered (`01.my-post`) or plain (`my-post`). Folders without an article file are skipped. The dashboard lists every language file in that folder, so `item.md` and `item.en.md` each appear with their own title. Edit opens that language.
 

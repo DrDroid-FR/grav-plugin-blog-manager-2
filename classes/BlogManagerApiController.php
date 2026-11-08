@@ -36,28 +36,127 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
 
     protected function folderForSlug(string $slug): ?string
     {
-        $slug = trim($slug, '/');
-        if ($slug === '' || $this->isUnsafeSegment($slug)) {
+        $route = $this->normalizeBlogRoute($slug);
+        if ($route === null) {
             return null;
         }
 
         $pagesDir = $this->grav['locator']->findResource('page://', true);
-        if (!$pagesDir || !is_dir($pagesDir)) {
+        $pagesReal = is_string($pagesDir) ? realpath($pagesDir) : false;
+        if (!$pagesReal || !is_dir($pagesReal)) {
             return null;
         }
 
-        foreach (new \DirectoryIterator($pagesDir) as $file) {
-            if ($file->isDot() || !$file->isDir()) {
-                continue;
-            }
-            $basename = $file->getBasename();
-            $clean = preg_replace('/^\d+\./', '', $basename);
-            if ($clean === $slug) {
-                return $file->getPathname();
+        $declared = $this->folderDeclaredInGrav('/' . $route, $pagesReal);
+        if ($declared !== null) {
+            return $declared;
+        }
+
+        return $this->folderForRoute($pagesReal, $route);
+    }
+
+    /**
+     * A blog route is one or more page slugs, such as blog or news/blog.
+     */
+    protected function normalizeBlogRoute(string $route): ?string
+    {
+        $route = trim(str_replace('\\', '/', $route), '/');
+        if ($route === '' || str_contains($route, '..') || str_contains($route, "\0")) {
+            return null;
+        }
+
+        foreach (explode('/', $route) as $segment) {
+            if ($segment === '' || $segment === '.' || $this->isUnsafeName($segment)) {
+                return null;
             }
         }
 
-        return null;
+        return $route;
+    }
+
+    /**
+     * Use the page Grav already routes to this path, including a custom route.
+     */
+    protected function folderDeclaredInGrav(string $route, string $pagesReal): ?string
+    {
+        if (!isset($this->grav['pages'])) {
+            return null;
+        }
+
+        try {
+            $page = $this->grav['pages']->find($route, true);
+        } catch (\Throwable $e) {
+            return null;
+        }
+        if (!$page || !method_exists($page, 'path')) {
+            return null;
+        }
+
+        $path = $page->path();
+        $real = is_string($path) ? realpath($path) : false;
+        if (!$real || !is_dir($real) || !$this->isInside($pagesReal, $real)) {
+            return null;
+        }
+
+        return $real;
+    }
+
+    /**
+     * Walk page folders when the route is not in Grav's page index yet.
+     * A numeric prefix such as 02. is ignored, matching Grav's folder slug.
+     */
+    protected function folderForRoute(string $pagesDir, string $route): ?string
+    {
+        $pagesReal = realpath($pagesDir);
+        if (!$pagesReal || $this->normalizeBlogRoute($route) === null) {
+            return null;
+        }
+
+        $current = $pagesReal;
+        foreach (explode('/', $route) as $segment) {
+            $match = null;
+            foreach (new \DirectoryIterator($current) as $file) {
+                if ($file->isDot() || !$file->isDir()) {
+                    continue;
+                }
+                $basename = $file->getBasename();
+                if (str_starts_with($basename, '.')) {
+                    continue;
+                }
+                [, $slug] = \Grav\Common\Page\PageOrdering::parse($basename);
+                if ($slug === $segment) {
+                    $match = $file->getPathname();
+                    break;
+                }
+            }
+            if ($match === null) {
+                return null;
+            }
+            $real = realpath($match);
+            if (!$real || !$this->isInside($pagesReal, $real)) {
+                return null;
+            }
+            $current = $real;
+        }
+
+        return $current;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function blogEditSegments(string ...$extra): array
+    {
+        $route = $this->normalizeBlogRoute($this->getBlogPath()) ?? '';
+        $parts = $route === '' ? [] : explode('/', $route);
+        foreach ($extra as $segment) {
+            $segment = trim(str_replace('\\', '/', $segment), '/');
+            if ($segment !== '') {
+                $parts[] = $segment;
+            }
+        }
+
+        return $parts;
     }
 
     protected function isUnsafeSegment(string $value): bool
@@ -432,8 +531,7 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
                 return ApiResponse::create(['success' => false, 'message' => 'Blog folder not found'], 404);
             }
 
-            $blogSlug = trim($this->getBlogPath(), '/');
-            $editBase = $this->adminEditUrl($blogSlug);
+            $editBase = $this->adminEditUrl(...$this->blogEditSegments());
 
             $posts = [];
             $dirs = glob($blogDir . '/*', GLOB_ONLYDIR);
@@ -527,7 +625,7 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             return ApiResponse::create([
                 'success' => true,
                 'posts' => $posts,
-                'new_post_url' => $this->adminEditUrl($blogSlug)
+                'new_post_url' => $this->adminEditUrl(...$this->blogEditSegments())
             ]);
         } catch (\Exception $e) {
             if (isset($this->grav['log'])) {
@@ -577,8 +675,7 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         $itemFile = $postDir . '/item.md';
         file_put_contents($itemFile, $content);
 
-        $blogSlug = trim($this->getBlogPath(), '/');
-        $editUrl = $this->adminEditUrl($blogSlug, $this->stripPostFolderPrefix($folderName));
+        $editUrl = $this->adminEditUrl(...$this->blogEditSegments($this->stripPostFolderPrefix($folderName)));
 
         return ApiResponse::create([
             'success' => true,
@@ -720,8 +817,7 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             }
         }
 
-        $blogSlug = trim($this->getBlogPath(), '/');
-        $editUrl = $this->adminEditUrl($blogSlug, $this->stripPostFolderPrefix($newFolder));
+        $editUrl = $this->adminEditUrl(...$this->blogEditSegments($this->stripPostFolderPrefix($newFolder)));
 
         return ApiResponse::create([
             'success' => true,

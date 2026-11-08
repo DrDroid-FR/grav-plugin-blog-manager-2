@@ -1,7 +1,7 @@
 PLUGIN_BLOG_MANAGER:
   PLUGIN_STATUS: 'Plugin Status'
   BLOG_PATH: 'Blog Path'
-  BLOG_PATH_HELP: 'The path to the blog folder (e.g. /blog)'
+  BLOG_PATH_HELP: 'Route of the blog page, for example /blog or /news/blog'
   MENU_TITLE: 'Blog Manager'
   PERMISSIONS_POSTS_READ: 'Read Blog Posts'
   PERMISSIONS_POSTS_WRITE: 'Write Blog Posts'
