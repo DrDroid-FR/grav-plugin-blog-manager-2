@@ -32,7 +32,12 @@ class BlogManagerPlugin extends Plugin
 
     public function onRegisterPermissions(PermissionsRegisterEvent $event): void
     {
-        $actions = PermissionsReader::fromYaml('plugin://blog-manager/permissions.yaml');
+        $path = $this->grav['locator']->findResource('plugin://blog-manager/permissions.yaml');
+        if (!$path) {
+            return;
+        }
+
+        $actions = PermissionsReader::fromYaml($path);
         $event->permissions->addActions($actions);
     }
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Grav\Common\Grav;
+use Grav\Framework\Acl\Permissions;
 use Grav\Plugin\BlogManager\BlogManagerApiController;
 use Grav\Plugin\BlogManagerPlugin;
 use Grav\Events\PermissionsRegisterEvent;
@@ -180,6 +181,15 @@ final class BlogManagerApiControllerTest extends TestCase
         $this->assertArrayHasKey('onApiRegisterRoutes', $events);
         $this->assertArrayHasKey('onApiSidebarItems', $events);
         $this->assertArrayHasKey('onApiPluginPageInfo', $events);
+
+        $permissions = new Permissions();
+        $plugin = new BlogManagerPlugin('blog-manager', Grav::instance(), Grav::instance()['config']);
+        $plugin->onRegisterPermissions(new PermissionsRegisterEvent($permissions));
+
+        $this->assertTrue($permissions->hasAction('blog-manager.posts.read'));
+        $this->assertTrue($permissions->hasAction('blog-manager.posts.write'));
+        $this->assertTrue($permissions->hasAction('blog-manager.posts.delete'));
+        $this->assertTrue($permissions->hasAction('blog-manager.posts.export'));
     }
 
     private function call(string $method, array $args): mixed

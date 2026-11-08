@@ -1,8 +1,9 @@
-blog-manager.posts.read:
-  title: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_READ
-blog-manager.posts.write:
-  title: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_WRITE
-blog-manager.posts.delete:
-  title: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_DELETE
-blog-manager.posts.export:
-  title: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_EXPORT
+actions:
+  blog-manager.posts.read:
+    label: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_READ
+  blog-manager.posts.write:
+    label: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_WRITE
+  blog-manager.posts.delete:
+    label: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_DELETE
+  blog-manager.posts.export:
+    label: PLUGIN_BLOG_MANAGER.PERMISSIONS_POSTS_EXPORT
