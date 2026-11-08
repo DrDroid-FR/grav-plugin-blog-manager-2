@@ -763,7 +763,6 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         return ApiResponse::create([
             'success' => true,
             'path' => $blogPath,
-            'folder' => $blogDir,
             'post_count' => $postCount,
         ]);
     }
