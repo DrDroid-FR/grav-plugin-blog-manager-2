@@ -1,3 +1,20 @@
+# 2.0.1
+## 2026-11-08
+
+1. [](#improved)
+    * **Blog Path** — Any page Grav has declared, including a nested route such as `/news/blog`. A numbered folder such as `01.news/02.blog` still matches.
+    * **Folder names** — A new post uses the slug, then `slug-2`. A duplicate uses `slug-copy`, then `slug-copy-2`. A taken import uses `slug-2`. The public URL no longer contains a timestamp.
+    * **Duplicates** — Every language file gains `(Copy)` on the title and is unpublished.
+    * **Front matter** — Publish, visible, and the copy title change only that line. Comments and dates stay as written.
+    * **Admin2 navigation** — New post and Parameters stay inside Admin2.
+    * **Release archive** — Built with `git archive`. `tests/`, `phpunit.xml`, and `composer.lock` are left out, and text files use LF.
+    * **Removed leftovers** — The unused image route is gone. Cards use the post's own page file. The placeholder image and image cache settings are gone. A post with no raster image still uses the Grav logo.
+2. [](#bugfix)
+    * **Permissions** — The four post actions are registered so Admin2 can grant them.
+    * **Post list** — Title, date, category, and tag from Grav front matter are normalized before the dashboard renders them.
+    * **ZIP import** — Hidden files, dangerous extensions, and SVG are skipped. Extraction stops before the archive can expand past 64 MB.
+    * **Scan** — The response reports the route and the article count. It no longer includes the folder location on disk.
+
 # 2.0.0
 ## 2026-11-04
 

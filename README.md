@@ -3,7 +3,7 @@
 ![Grav Version](https://img.shields.io/badge/Grav-2.0%2B-blue.svg)
 ![Admin2 Version](https://img.shields.io/badge/Admin2-2.0%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)
 
 A modern **Admin2 (Grav 2.x) plugin** that provides a dashboard for managing blog posts directly in the Admin Next SPA. Browse posts in grid or list view, filter by date, category, tag, or language, create and duplicate posts, export or import ZIP archives, and toggle publish/visible status inline — all without leaving the admin interface.
 
@@ -14,7 +14,7 @@ A modern **Admin2 (Grav 2.x) plugin** that provides a dashboard for managing blo
 - 📋 **Three View Modes** — Big cards (2-col), small cards (4-col), and list view with column headers
 - ✏️ **Native Editor Integration** — Edit posts using Grav's built-in page editor
 - ➕ **Create New Posts** — Auto-generates folder and frontmatter, redirects to native editor
-- 📑 **Duplicate Posts** — Copies folder, appends "- copy" to title, unpublishes the duplicate
+- 📑 **Duplicate Posts** — Copies the folder to `slug-copy` (then `slug-copy-2`). Each language title gains `(Copy)`, and every language is unpublished
 - 🗑️ **Delete with Modal** — Styled confirmation modal instead of browser alert
 - 🔄 **Inline Status Toggle** — Click Published/Visible badges to toggle without page reload
 - 🔍 **Filter Panel** — Search by text, filter by Published, Visible, Category, Tag, Language, and Date Range
@@ -117,7 +117,7 @@ Use the checkbox on each post, or the header **Select all** checkbox in list vie
 
 #### Sidebar
 
-- **New Post** — Creates a new unpublished post via Grav's native page creation, then redirects to the editor
+- **New Post** — Creates an unpublished post folder from the slug, then opens it in Grav's page editor
 - **Export All** — Downloads every loaded post as a ZIP file. Selected export remains on the bulk bar.
 - **Import** — Uploads a ZIP of post folders. Entries that leave the archive, or that are not post folders, are rejected. A slug that is already a page is saved as `slug-2`.
 - **Filter Panel** — Search, filter by status, date range, category, tag, language
@@ -169,7 +169,7 @@ blog-manager/
 ├── assets/
 │   ├── blog-manager.css          # All plugin styles
 │   └── images/
-│       ├── grav-cms-logo.svg     # Default placeholder image
+│       ├── grav-cms-logo.svg     # Logo used when a post has no raster image
 │       └── readme/               # README screenshots
 ├── README.md
 ├── CHANGELOG.md
