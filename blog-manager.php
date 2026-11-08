@@ -53,7 +53,6 @@ class BlogManagerPlugin extends Plugin
         $routes->post('/blog-manager/scan', ['Grav\Plugin\BlogManager\BlogManagerApiController', 'scanBlog']);
         $routes->post('/blog-manager/export', ['Grav\Plugin\BlogManager\BlogManagerApiController', 'exportPosts']);
         $routes->post('/blog-manager/import', ['Grav\Plugin\BlogManager\BlogManagerApiController', 'importPosts']);
-        $routes->get('/blog-manager/posts/{folder}/image', ['Grav\Plugin\BlogManager\BlogManagerApiController', 'getPostImage']);
     }
 
     public function onApiSidebarItems(Event $event): void
