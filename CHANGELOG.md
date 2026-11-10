@@ -1,3 +1,9 @@
+# 2.0.3
+## 2026-11-10
+
+1. [](#bugfix)
+    * **Admin language** — Card buttons, filters, badges, dates, toasts, and the Scan button follow the language saved on the admin account. Titles, excerpts, and the language mark stay in the article's language.
+
 # 2.0.2
 ## 2026-11-10
 

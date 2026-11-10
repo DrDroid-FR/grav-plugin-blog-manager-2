@@ -1,7 +1,7 @@
 {
   "name": "drdroid/grav-plugin-blog-manager",
   "description": "Blog Manager plugin for Grav CMS",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "MIT",
   "require-dev": {
     "phpunit/phpunit": "^10.5"

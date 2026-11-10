@@ -34,7 +34,7 @@ const copy = {
 };
 
 function fieldLang() {
-    const raw = String(window.__GRAV_CONFIG__?.language || navigator.language || 'en');
+    const raw = String(window.__GRAV_I18N?.locale || window.__GRAV_CONFIG__?.language || navigator.language || 'en');
     const code = raw.toLowerCase().split(/[-_]/)[0];
     return copy[code] ? code : 'en';
 }
