@@ -1,3 +1,10 @@
+# 2.0.2
+## 2026-11-10
+
+1. [](#bugfix)
+    * **Front matter text** — A title that contains `$` or `\` is written as plain text. Duplicating “Save $5 on \1 deal” keeps that title.
+    * **Published and visible** — `false`, `no`, `off`, and `0` count as off before the switch is flipped, including a quoted `"false"`.
+
 # 2.0.1
 ## 2026-11-08
 

@@ -725,8 +725,8 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
             $header = [];
         }
 
-        $header[$field] = !($header[$field] ?? true);
-        $newContent = $this->setFrontmatterLine($content, $field, (bool)$header[$field]);
+        $header[$field] = !$this->frontmatterFlag($header[$field] ?? true);
+        $newContent = $this->setFrontmatterLine($content, $field, $header[$field]);
         if ($newContent === null) {
             return ApiResponse::create(['success' => false, 'message' => 'Invalid frontmatter'], 400);
         }
@@ -1357,7 +1357,9 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         $line = rtrim(\Symfony\Component\Yaml\Yaml::dump([$key => $value], 2, 2), "\n");
         $pattern = '/^' . preg_quote($key, '/') . '\s*:.*(?:\n[ \t].*)*/m';
         if (preg_match($pattern, $matches[1])) {
-            $header = preg_replace($pattern, $line, $matches[1], 1);
+            $header = preg_replace_callback($pattern, static function () use ($line): string {
+                return $line;
+            }, $matches[1], 1);
         } else {
             $header = rtrim($matches[1], "\n") . "\n" . $line . "\n";
         }
@@ -1371,6 +1373,25 @@ class BlogManagerApiController extends \Grav\Plugin\Api\Controllers\AbstractApiC
         }
 
         return $updated;
+    }
+
+    /**
+     * Grav stores false as false, "false", "no", "off", or "0". A plain (bool) cast
+     * treats the word "false" as true.
+     */
+    protected function frontmatterFlag(mixed $value): bool
+    {
+        if (is_string($value)) {
+            $value = strtolower(trim($value));
+        }
+        if (\Grav\Common\Utils::isNegative($value)) {
+            return false;
+        }
+        if (\Grav\Common\Utils::isPositive($value)) {
+            return true;
+        }
+
+        return (bool)$value;
     }
 
     private function slugify(string $text): string

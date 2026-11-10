@@ -138,6 +138,28 @@ final class BlogManagerApiControllerTest extends TestCase
         $this->assertStringContainsString('published: false', $copied);
     }
 
+    public function testFrontmatterReplacementKeepsDollarAndBackslash(): void
+    {
+        $source = "---\ntitle: Hello\ndate: '13:34 07/23/2017'\n---\n\nBody\n";
+        $title = 'Save $5 on \\1 deal (Copy)';
+        $updated = $this->call('setFrontmatterLine', [$source, 'title', $title]);
+
+        $this->assertIsString($updated);
+        $this->assertSame(1, preg_match('/^---\s*\n(.*?\n)---\s*\n/s', $updated, $matches));
+        $header = \Symfony\Component\Yaml\Yaml::parse($matches[1]);
+        $this->assertSame($title, $header['title']);
+        $this->assertSame('13:34 07/23/2017', $header['date']);
+    }
+
+    public function testQuotedFalsePublishesOnToggle(): void
+    {
+        $this->assertFalse($this->call('frontmatterFlag', ['false']));
+        $this->assertFalse($this->call('frontmatterFlag', ['off']));
+        $this->assertTrue($this->call('frontmatterFlag', ['true']));
+        $this->assertTrue($this->call('frontmatterFlag', [true]));
+        $this->assertFalse($this->call('frontmatterFlag', [false]));
+    }
+
     public function testCopyAndDeleteStayInsideTheAllowedRoot(): void
     {
         $root = $this->makeTree();

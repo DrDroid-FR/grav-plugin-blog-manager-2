@@ -3,7 +3,7 @@
 ![Grav Version](https://img.shields.io/badge/Grav-2.0%2B-blue.svg)
 ![Admin2 Version](https://img.shields.io/badge/Admin2-2.0%2B-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.2-blue.svg)
 
 A modern **Admin2 (Grav 2.x) plugin** that provides a dashboard for managing blog posts directly in the Admin Next SPA. Browse posts in grid or list view, filter by date, category, tag, or language, create and duplicate posts, export or import ZIP archives, and toggle publish/visible status inline — all without leaving the admin interface.
 
